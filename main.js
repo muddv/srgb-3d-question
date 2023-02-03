@@ -3,7 +3,8 @@ import {
 	PerspectiveCamera,
 	WebGLRenderer,
 	MeshBasicMaterial,
-	Mesh,
+	Points,
+	Vector3,
 	BufferAttribute,
 	BufferGeometry
 } from 'three'
@@ -26,17 +27,11 @@ function init() {
 
 function generateGamut() {
 	let modelData = getModelData()
-
-	const geometry = new BufferGeometry()
-	const coordinates = new Float32Array(modelData.coordinates)
+	const geometry = new BufferGeometry().setFromPoints(modelData.coordinates)
 	const color = new Float32Array(modelData.colors)
-
-	geometry.setAttribute('position', new BufferAttribute(coordinates, 3))
 	geometry.setAttribute('color', new BufferAttribute(color, 3))
-
 	const material = new MeshBasicMaterial({ vertexColors: true, wireframe: true })
-	const mesh = new Mesh(geometry, material)
-
+	const mesh = new Points(geometry, material)
 	scene.add(mesh)
 	controls = new TrackballControls(camera, renderer.domElement)
 }
@@ -50,8 +45,10 @@ function getModelData() {
 			for (let z = 0; z <= 1; z += 0.01) {
 				let rgb = { mode: 'rgb', r: x, g: y, b: z }
 				let color = lch(rgb)
-				coordinates.push(color.l, color.c, color.h)
-				colors.push(rgb.r, rgb.g, rgb.b)
+				if (color.l && color.c && color.h) {
+					coordinates.push(new Vector3(color.l, color.c, color.h))
+					colors.push(rgb.r, rgb.g, rgb.b)
+				}
 			}
 		}
 	}
